@@ -1,0 +1,40 @@
+#!/usr/bin/env python2
+
+import time
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
+from subprocess import call
+
+# TODO : une option deco, no-push
+# + prend en param le dossier (. si rien)
+
+def commit():
+    call("echo ================ COMMIT BEGIN ================", shell=True)
+    call("git add -A", shell=True)
+    call("git commit -m 'autocommit'", shell=True)
+
+    pullResult = call("git pull origin master", shell=True)
+    if pullResult == 1:
+        call("terminal-notifier -message 'Erreur de git pull' -title 'git pull error'", shell=True)
+    pushResult = call("git push origin master", shell=True)
+    if pushResult == 1:
+        call("terminal-notifier -message 'Erreur de git push, conflicts de merge ?' -title 'git push error'", shell=True)
+    call("echo ================ COMMIT END ================", shell=True)
+
+class AutoCommit(FileSystemEventHandler):
+    # plusieurs events, 'modified' est systematique 
+    def on_modified(self, event):
+        commit()
+
+if __name__ == "__main__":
+    observer = Observer()
+    # si pas de content, .git fout le bordel
+	# TODO regler ca surtout...
+    observer.schedule(AutoCommit(), path='content', recursive=True)
+    observer.start()
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        observer.stop()
+    observer.join()
