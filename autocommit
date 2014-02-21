@@ -13,13 +13,15 @@ def commit():
     call("git add -A", shell=True)
     call("git commit -m 'autocommit'", shell=True)
 
+	call("echo ================= PULL BEGIN =================", shell=True)
     pullResult = call("git pull origin master", shell=True)
     if pullResult == 1:
         call("terminal-notifier -message 'Erreur de git pull' -title 'git pull error'", shell=True)
+	call("echo ================= PUSH BEGIN =================", shell=True)
     pushResult = call("git push origin master", shell=True)
     if pushResult == 1:
         call("terminal-notifier -message 'Erreur de git push, conflicts de merge ?' -title 'git push error'", shell=True)
-    call("echo ================ COMMIT END ================", shell=True)
+    call("echo ==================== END ====================", shell=True)
 
 class AutoCommit(FileSystemEventHandler):
     # plusieurs events, 'modified' est systematique 
