@@ -21,7 +21,7 @@ def commit():
     pushResult = call("git push origin master", shell=True)
     if pushResult == 1:
         call("terminal-notifier -message 'Erreur de git push, conflicts de merge ?' -title 'git push error'", shell=True)
-    call("echo ==================== END ====================", shell=True)
+    call("echo ==================== END =====================", shell=True)
 
 class AutoCommit(FileSystemEventHandler):
     # plusieurs events, 'modified' est systematique 
