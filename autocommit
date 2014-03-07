@@ -5,8 +5,8 @@ from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 from subprocess import call
 
-# TODO : une option deco, no-push
-# + prend en param le dossier (. si rien)
+# TODO a parameter np for "no pull/push" option (disconnected, or no master)
+# TODO a parameter to choose the directory
 
 def commit():
     call("echo ================ COMMIT BEGIN ================", shell=True)
@@ -24,15 +24,17 @@ def commit():
     call("echo ==================== END =====================", shell=True)
 
 class AutoCommit(FileSystemEventHandler):
-    # plusieurs events, 'modified' est systematique 
+    # several events, 'modified' allways happens
     def on_modified(self, event):
-        commit()
+        # TODO do it smarter...
+        if not '.git' in event.src_path:
+            print(event.src_path)
+            commit()
 
 if __name__ == "__main__":
     observer = Observer()
-    # si pas de content, .git fout le bordel
-	# TODO regler ca surtout...
-    observer.schedule(AutoCommit(), path='content', recursive=True)
+    # if no /content dir, .git is a problem -> it should be filtered...
+    observer.schedule(AutoCommit(), path='.', recursive=True)
     observer.start()
     try:
         while True:
