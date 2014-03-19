@@ -7,26 +7,30 @@ from subprocess import call
 
 # TODO a parameter np for "no pull/push" option (disconnected, or no master)
 # TODO no -d for dir param with getopt ?
+# TODO -g mandatory for launchctl ?
 
 def main(argv):
     global git, gitfetch
     try:
-        opts, args = getopt.getopt(argv,"hd:",["help","dir="])
+        opts, args = getopt.getopt(argv,"hd:g:",["help","dir=","git="])
     except getopt.GetoptError:
         usage()
         sys.exit(2)	
     dir = '.'
+    gitbin = 'git'
     for opt, arg in opts:
         if opt in ("-h", "--help"):
             usage()     
             sys.exit()
+        if opt in ("-g", "--git"):
+            gitbin = arg
         elif opt == '-d':
 			dir = arg
     call("echo Using directory " + dir, shell=True)
     call("cd " + dir, shell=True)
-    git = "git --git-dir=" + dir + "/.git" + " --work-tree=" + dir + " "
+    git = gitbin + " --git-dir=" + dir + "/.git" + " --work-tree=" + dir + " "
     # git pull does not want --work-tree
-    gitfetch = "git --git-dir=" + dir + "/.git" + " fetch "
+    gitfetch = gitbin + " --git-dir=" + dir + "/.git" + " fetch "
     # TODO check repo
     observer = Observer()
     # if no /content dir, .git is a problem -> it should be filtered...
