@@ -1,1 +1,79 @@
-test !
+#!/usr/bin/env python2
+
+import sys, getopt, time
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
+from subprocess import call
+
+# TODO a parameter np for "no pull/push" option (disconnected, or no master)
+# TODO no -d for dir param with getopt ?
+# TODO -g mandatory for launchctl ?
+
+def main(argv):
+    global git, gitfetch
+    try:
+        opts, args = getopt.getopt(argv,"hd:g:",["help","dir=","git="])
+    except getopt.GetoptError:
+        usage()
+        sys.exit(2)	
+    dir = '.'
+    gitbin = 'got'
+    for opt, arg in opts:
+        if opt in ("-h", "--help"):
+            usage()     
+            sys.exit()
+        if opt in ("-g", "--git"):
+            gitbin = arg
+        elif opt == '-d':
+			dir = arg
+    call("echo Using directory " + dir, shell=True)
+    call("cd " + dir, shell=True)
+    git = gitbin + " --git-dir=" + dir + "/.git" + " --work-tree=" + dir + " "
+    # git pull does not want --work-tree
+    gitfetch = gitbin + " --git-dir=" + dir + "/.git" + " fetch "
+    # TODO check repo
+    observer = Observer()
+    # if no /content dir, .git is a problem -> it should be filtered...
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        observer.stop()
+    observer.join()
+
+helllo
+
+
+def commit():
+    global git, gitfetch
+    call("echo ================ COMMIT BEGINS ================", shell=True)
+    call(git + "add -A", shell=True)
+    call(git + "commit -m 'autocommit'", shell=True)
+
+    call("echo ============ FETCH + MERGE BEGINS =============", shell=True)
+    # doing git pull does not merge
+    fetchResult = call(gitfetch + "origin master", shell=True)
+    if fetchResult == 1:
+        call("terminal-notifier -message 'git fetch error' -title 'git pull error'", shell=True)
+    mergeResult = call(git + "merge FETCH_HEAD", shell=True)
+    if mergeResult == 1:
+        call("terminal-notifier -message 'git merge error' -title 'git pull error'", shell=True)
+    call("echo ================= PUSH BEGINS =================", shell=True)
+    pushResult = call(git + "push origin master", shell=True)
+    if pushResult == 1:
+        call("terminal-notifier -message 'git push error' -title 'git push error'", shell=True)
+    call("echo ===================== END =====================", shell=True)
+
+class AutoCommit(FileSystemEventHandler):
+    # several events, 'modified' allways happens
+    def on_modified(self, event):
+        # TODO do it smarter... (startswith is not enough, have to remove absolute path)
+        if not '.git' in event.src_path:
+            call("echo ================= CHANGE LIST =================", shell=True)
+            call("echo \ \ " + event.src_path, shell=True)
+            commit()
+
+def usage():
+    print 'autocommit -d <directory>'
+
+if __name__ == "__main__":
+    main(sys.argv[1:])
