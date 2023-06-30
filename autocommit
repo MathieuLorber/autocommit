@@ -5,7 +5,7 @@ from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 from subprocess import call
 
-# TODO a parameter np for "no pull/push" option (disconnected, or no master)
+# TODO a parameter np for "no pull/push" option (disconnected, or no main)
 # TODO no -d for dir param with getopt ?
 # TODO -g mandatory for launchctl ?
 
@@ -51,14 +51,14 @@ def commit():
 
     call("echo ============ FETCH + MERGE BEGINS =============", shell=True)
     # doing git pull does not merge
-    fetchResult = call(gitfetch + "origin master", shell=True)
+    fetchResult = call(gitfetch + "origin main", shell=True)
     if fetchResult == 1:
         call("terminal-notifier -message 'git fetch error' -title 'git pull error'", shell=True)
     mergeResult = call(git + "merge FETCH_HEAD", shell=True)
     if mergeResult == 1:
         call("terminal-notifier -message 'git merge error' -title 'git pull error'", shell=True)
     call("echo ================= PUSH BEGINS =================", shell=True)
-    pushResult = call(git + "push origin master", shell=True)
+    pushResult = call(git + "push origin main", shell=True)
     if pushResult == 1:
         call("terminal-notifier -message 'git push error' -title 'git push error'", shell=True)
     call("echo ===================== END =====================", shell=True)
