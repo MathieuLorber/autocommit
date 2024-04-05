@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 import sys, getopt, time
 from watchdog.observers import Observer
@@ -12,20 +12,20 @@ from subprocess import call
 def main(argv):
     global git, gitfetch
     try:
-        opts, args = getopt.getopt(argv,"hd:g:",["help","dir=","git="])
+        opts, args = getopt.getopt(argv, "hd:g:", ["help", "dir=", "git="])
     except getopt.GetoptError:
         usage()
-        sys.exit(2)	
+        sys.exit(2)
     dir = '.'
     gitbin = 'git'
     for opt, arg in opts:
         if opt in ("-h", "--help"):
-            usage()     
+            usage()
             sys.exit()
         if opt in ("-g", "--git"):
             gitbin = arg
         elif opt == '-d':
-			dir = arg
+            dir = arg
     call("echo Using directory " + dir, shell=True)
     call("cd " + dir, shell=True)
     git = gitbin + " --git-dir=" + dir + "/.git" + " --work-tree=" + dir + " "
@@ -64,16 +64,16 @@ def commit():
     call("echo ===================== END =====================", shell=True)
 
 class AutoCommit(FileSystemEventHandler):
-    # several events, 'modified' allways happens
+    # several events, 'modified' always happens
     def on_modified(self, event):
         # TODO do it smarter... (startswith is not enough, have to remove absolute path)
-        if not '.git' in event.src_path:
+        if '.git' not in event.src_path:
             call("echo ================= CHANGE LIST =================", shell=True)
             call("echo \ \ " + event.src_path, shell=True)
             commit()
 
 def usage():
-    print 'autocommit -d <directory>'
+    print('Usage: autocommit -d <directory>')
 
 if __name__ == "__main__":
     main(sys.argv[1:])
