@@ -69,7 +69,7 @@ class AutoCommit(FileSystemEventHandler):
         # TODO do it smarter... (startswith is not enough, have to remove absolute path)
         if '.git' not in event.src_path:
             call("echo ================= CHANGE LIST =================", shell=True)
-            call("echo \ \ " + event.src_path, shell=True)
+            call("echo " + event.src_path, shell=True)
             commit()
 
 def usage():
