@@ -11,8 +11,10 @@ kotlin { jvmToolchain(21) }
 
 dependencies {
     implementation(kotlin("stdlib"))
+    implementation("io.github.microutils:kotlin-logging:3.0.5")
     implementation("com.github.ajalt.clikt:clikt:4.4.0")
     implementation("org.yaml:snakeyaml:2.2")
+    implementation("org.eclipse.jgit:org.eclipse.jgit:6.10.0.202406032230-r")
 }
 
 repositories { mavenCentral() }
