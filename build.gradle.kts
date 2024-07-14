@@ -12,6 +12,7 @@ kotlin {
 
 dependencies {
     implementation(kotlin("stdlib"))
+    implementation("com.github.ajalt.clikt:clikt:4.4.0")
 }
 
 repositories {
