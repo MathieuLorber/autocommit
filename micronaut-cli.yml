@@ -1,0 +1,6 @@
+applicationType: cli
+defaultPackage: net.mlorber.autocommit
+testFramework: junit
+sourceLanguage: kotlin
+buildTool: gradle_kotlin
+features: [annotation-api, app-name, gradle, http-client, jackson-databind, junit, kotlin, kotlin-build, logback, micronaut-build, picocli, picocli-junit, picocli-kotlin-application, readme, shade, yaml]
