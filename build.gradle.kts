@@ -1,4 +1,5 @@
 group = "net.mlorber.autocommit"
+
 version = "0.1"
 
 plugins {
@@ -6,9 +7,7 @@ plugins {
     id("org.graalvm.buildtools.native") version "0.10.2"
 }
 
-kotlin {
-    jvmToolchain(21)
-}
+kotlin { jvmToolchain(21) }
 
 dependencies {
     implementation(kotlin("stdlib"))
@@ -16,9 +15,7 @@ dependencies {
     implementation("org.yaml:snakeyaml:2.2")
 }
 
-repositories {
-    mavenCentral()
-}
+repositories { mavenCentral() }
 
 graalvmNative {
     binaries {

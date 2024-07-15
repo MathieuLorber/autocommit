@@ -1,12 +1,12 @@
 package net.mlorber.autocommit.watcher
 
-import net.mlorber.autocommit.config.Repository
 import java.nio.file.FileSystems
 import java.nio.file.Path
 import java.nio.file.StandardWatchEventKinds.ENTRY_CREATE
 import java.nio.file.StandardWatchEventKinds.ENTRY_DELETE
 import java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY
 import java.nio.file.StandardWatchEventKinds.OVERFLOW
+import net.mlorber.autocommit.config.Repository
 
 class Watcher {
 
@@ -14,28 +14,29 @@ class Watcher {
 
     // TODO print message if dir is empty
     constructor(repository: Repository) {
-        thread = Thread({
-            val watcher = FileSystems.getDefault().newWatchService()
-            register(repository.path, watcher)
-            while (!Thread.currentThread().isInterrupted()) {
-                val key = watcher.take()
-                key.pollEvents().forEach { event ->
-                    val kind = event.kind()
-                    if (kind === OVERFLOW) {
-                        return@forEach
+        thread =
+            Thread({
+                val watcher = FileSystems.getDefault().newWatchService()
+                register(repository.path, watcher)
+                while (!Thread.currentThread().isInterrupted()) {
+                    val key = watcher.take()
+                    key.pollEvents().forEach { event ->
+                        val kind = event.kind()
+                        if (kind === OVERFLOW) {
+                            return@forEach
+                        }
+                        // TODO git save
+                        println(event.context())
                     }
-                    // TODO git save
-                    println(event.context())
+                    // Reset the key -- this step is critical if you want to
+                    // receive further watch events.  If the key is no longer valid,
+                    // the directory is inaccessible so exit the loop.
+                    val valid = key.reset()
+                    if (!valid) {
+                        break
+                    }
                 }
-                // Reset the key -- this step is critical if you want to
-                // receive further watch events.  If the key is no longer valid,
-                // the directory is inaccessible so exit the loop.
-                val valid = key.reset()
-                if (!valid) {
-                    break
-                }
-            }
-        })
+            })
         thread.start()
     }
 

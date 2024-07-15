@@ -9,6 +9,5 @@ class AutocommitCommand : CliktCommand() {
     override fun run() = Unit
 }
 
-fun main(args: Array<String>) = AutocommitCommand()
-    .subcommands(PullCommand(), WatchCommand())
-    .main(args)
+fun main(args: Array<String>) =
+    AutocommitCommand().subcommands(PullCommand(), WatchCommand()).main(args)

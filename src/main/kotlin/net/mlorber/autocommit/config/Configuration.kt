@@ -1,10 +1,10 @@
 package net.mlorber.autocommit.config
 
-import org.yaml.snakeyaml.Yaml
 import java.nio.file.Paths
 import kotlin.io.path.exists
 import kotlin.io.path.inputStream
 import kotlin.system.exitProcess
+import org.yaml.snakeyaml.Yaml
 
 object Configuration {
     val repos by lazy {
@@ -19,8 +19,7 @@ object Configuration {
             Repository(
                 it.getValue("name"),
                 Paths.get(it.getValue("path")),
-                it.get("ignore")?.split(",") ?: emptyList()
-            )
+                it.get("ignore")?.split(",") ?: emptyList())
         }
     }
 }
