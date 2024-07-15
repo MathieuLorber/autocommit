@@ -1,0 +1,44 @@
+#!/bin/bash
+
+ktfmtVersion=0.49
+filename=ktfmt-$ktfmtVersion-jar-with-dependencies.jar
+dir=~/.ktfmt
+file=$dir/$filename
+if ! test -f "$file"; then
+    mkdir -p $dir
+    curl -L https://search.maven.org/remotecontent?filepath=com/facebook/ktfmt/$ktfmtVersion/$filename -o $file
+fi
+
+echo ~~~ ktfmt $ktfmtVersion ~~~
+
+start_time=$(gdate +%s%N | cut -b1-13)
+
+# Capture the list of files to format and count them, avoiding to traverse node_modules directories
+files=$(find . -type d -name node_modules -prune -false -o \( -name '*.kt' -o -name '*.kts' \))
+# xargs to trim
+total_files=$(echo "$files" | wc -l | xargs)
+
+echo Start formatter on $total_files files
+
+# Run the command while updating the loading bar
+count=0
+errors=""
+while IFS= read -r line; do
+    count=$((count + 1))
+    echo -ne "\r$count / $total_files"
+    
+    if [[ $line == *" error: "* ]]; then
+      errors=$errors$'\n'$line
+    fi
+done < <(java -jar $file --dropbox-style $files 2>&1)
+
+# New line after counting line
+echo
+
+end_time=$(gdate +%s%N | cut -b1-13)
+echo "Time elapsed: $((end_time - start_time))ms"
+
+# display errors at end (if any)
+if [ -n "$errors" ]; then
+    echo -e "\033[31mErrors detected:$errors\033[0m"
+fi
