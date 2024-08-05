@@ -6,6 +6,7 @@ import java.nio.file.StandardWatchEventKinds.ENTRY_CREATE
 import java.nio.file.StandardWatchEventKinds.ENTRY_DELETE
 import java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY
 import java.nio.file.StandardWatchEventKinds.OVERFLOW
+import kotlin.io.path.exists
 import mu.KotlinLogging
 import net.mlorber.autocommit.config.RepositoryConfig
 import net.mlorber.autocommit.utils.GitUtils
@@ -26,6 +27,10 @@ class Watcher {
     constructor(repositoryConfig: RepositoryConfig) {
         thread =
             Thread({
+                if (!repositoryConfig.path.exists()) {
+                    logger.error { "Repository path does not exist: ${repositoryConfig.path}" }
+                    return@Thread
+                }
                 val watcher = FileSystems.getDefault().newWatchService()
                 register(repositoryConfig.path, watcher)
                 while (running) {

@@ -4,16 +4,23 @@ import java.nio.file.Paths
 import kotlin.io.path.exists
 import kotlin.io.path.inputStream
 import kotlin.system.exitProcess
+import mu.KotlinLogging
 import org.yaml.snakeyaml.Yaml
 
 object Configuration {
+
+    private val logger = KotlinLogging.logger {}
+
     val repos by lazy {
         val file = Paths.get(System.getProperty("user.home")).resolve("autocommit-config.yaml")
         if (!file.exists()) {
-            println("Missing config file : $file")
+            logger.error { "Missing config file : $file" }
             exitProcess(1)
         }
         val yaml = Yaml().load<Map<String, Any>>(file.inputStream())
+
+        // TODO a cleaner check of conf ?
+        @Suppress("UNCHECKED_CAST")
         val repos = yaml.get("repositories") as List<Map<String, String>>
         repos.map {
             RepositoryConfig(
