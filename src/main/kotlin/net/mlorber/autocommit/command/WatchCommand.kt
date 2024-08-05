@@ -2,11 +2,15 @@ package net.mlorber.autocommit.command
 
 import com.github.ajalt.clikt.core.CliktCommand
 import kotlin.concurrent.Volatile
+import mu.KotlinLogging
 import net.mlorber.autocommit.config.Configuration
 import net.mlorber.autocommit.watcher.Watcher
 
 class WatchCommand : CliktCommand("watch") {
-    var watchers = listOf<Watcher>()
+
+    private val logger = KotlinLogging.logger {}
+
+    private lateinit var watchers: List<Watcher>
 
     @Volatile var running: Boolean = true
 
@@ -14,7 +18,6 @@ class WatchCommand : CliktCommand("watch") {
         Runtime.getRuntime()
             .addShutdownHook(
                 Thread {
-                    println("Stop watchers")
                     stopThreads()
                     running = false
                 })
@@ -29,6 +32,7 @@ class WatchCommand : CliktCommand("watch") {
     }
 
     private fun stopThreads() {
+        logger.info { "Stop watchers" }
         watchers.forEach { it.stop() }
         watchers.forEach { it.join() }
     }

@@ -20,14 +20,21 @@ class Watcher {
 
     private val thread: Thread
 
+    @Volatile var running: Boolean = true
+
     // TODO print message if dir is empty
     constructor(repositoryConfig: RepositoryConfig) {
         thread =
             Thread({
                 val watcher = FileSystems.getDefault().newWatchService()
                 register(repositoryConfig.path, watcher)
-                while (!Thread.currentThread().isInterrupted()) {
-                    val key = watcher.take()
+                while (running) {
+                    val key =
+                        try {
+                            watcher.take()
+                        } catch (e: InterruptedException) {
+                            return@Thread
+                        }
                     key.pollEvents().forEach { event ->
                         if (event.context().toString() == gitRepository) {
                             return@forEach
@@ -68,7 +75,11 @@ class Watcher {
         }
     }
 
-    fun stop() = thread.interrupt()
+    fun stop() {
+        running = false
+        Thread.sleep(100)
+        thread.interrupt()
+    }
 
     fun join() = thread.join()
 }
