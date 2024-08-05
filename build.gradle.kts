@@ -11,6 +11,8 @@ kotlin { jvmToolchain(21) }
 
 dependencies {
     implementation(kotlin("stdlib"))
+    implementation("ch.qos.logback:logback-classic:1.4.14")
+    implementation("io.github.microutils:kotlin-logging:3.0.5")
     implementation("com.github.ajalt.clikt:clikt:4.4.0")
     implementation("org.yaml:snakeyaml:2.2")
 }

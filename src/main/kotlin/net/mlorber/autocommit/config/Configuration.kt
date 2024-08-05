@@ -16,10 +16,11 @@ object Configuration {
         val yaml = Yaml().load<Map<String, Any>>(file.inputStream())
         val repos = yaml.get("repositories") as List<Map<String, String>>
         repos.map {
-            Repository(
+            RepositoryConfig(
                 it.getValue("name"),
                 Paths.get(it.getValue("path")),
-                it.get("ignore")?.split(",") ?: emptyList())
+                it.getValue("branch"),
+                it.getValue("commitMessagePrefix"))
         }
     }
 }

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration>
+<configuration>
+    <appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder name="enc" class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+            <layout class="ch.qos.logback.classic.PatternLayout">
+                <!-- @formatter:off -->
+                <!-- empty {} serves as a separator (so no space is needed) -->
+                <pattern>%d{MM-dd HH:mm:ss} %highlight(%-5level) %m %cyan([%-36logger{36}]){}%n</pattern>
+                <!-- @formatter:on -->
+            </layout>
+        </encoder>
+    </appender>
+
+    <root level="WARN">
+        <appender-ref ref="stdout"/>
+    </root>
+
+    <logger name="net.mlorber.autocommit" level="INFO"/>
+</configuration>
