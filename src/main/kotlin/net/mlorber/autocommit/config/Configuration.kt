@@ -19,6 +19,7 @@ object Configuration {
         }
         val yaml = Yaml().load<Map<String, Any>>(file.inputStream())
 
+        val commonPrefix  = yaml.get("commitMessagePrefix") as String?
         // TODO a cleaner check of conf ?
         @Suppress("UNCHECKED_CAST")
         val repos = yaml.get("repositories") as List<Map<String, String>>
@@ -27,7 +28,7 @@ object Configuration {
                 it.getValue("name"),
                 Paths.get(it.getValue("path")),
                 it.getValue("branch"),
-                it.getValue("commitMessagePrefix"))
+                it.get("commitMessagePrefix") ?: commonPrefix ?: "")
         }
     }
 }
