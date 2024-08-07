@@ -31,8 +31,10 @@ object GitUtils {
     fun currentBranch(repositoryConfig: RepositoryConfig) =
         ShellRunner.run(repositoryConfig.path, "git branch --show-current").output.first()
 
-    fun diffFiles(repositoryConfig: RepositoryConfig) =
-        ShellRunner.run(repositoryConfig.path, "git diff --name-only").output
+    fun diffFiles(repositoryConfig: RepositoryConfig): List<String> {
+        ShellRunner.run(repositoryConfig.path, "git add --all")
+        return ShellRunner.run(repositoryConfig.path, "git diff --name-status --cached").output
+    }
 
     fun save(repositoryConfig: RepositoryConfig) {
         val diff = diffFiles(repositoryConfig)
@@ -42,7 +44,6 @@ object GitUtils {
         logger.info {
             "Commit ${repositoryConfig.coloredName()} ${diff.joinToString(separator = ", ")}"
         }
-        ShellRunner.run(repositoryConfig.path, "git add --all")
         ShellRunner.run(
             repositoryConfig.path,
             "git commit -m '${repositoryConfig.commitMessagePrefix} autocommit'")
