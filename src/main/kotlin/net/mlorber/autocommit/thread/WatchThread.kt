@@ -1,4 +1,4 @@
-package net.mlorber.autocommit.watcher
+package net.mlorber.autocommit.thread
 
 import java.nio.file.FileSystems
 import java.nio.file.Path
@@ -11,7 +11,7 @@ import mu.KotlinLogging
 import net.mlorber.autocommit.config.RepositoryConfig
 import net.mlorber.autocommit.utils.GitUtils
 
-class Watcher {
+class WatchThread {
 
     companion object {
         const val gitRepository = ".git"
