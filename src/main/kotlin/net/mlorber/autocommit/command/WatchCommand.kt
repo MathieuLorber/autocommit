@@ -4,13 +4,13 @@ import com.github.ajalt.clikt.core.CliktCommand
 import kotlin.concurrent.Volatile
 import mu.KotlinLogging
 import net.mlorber.autocommit.config.Configuration
-import net.mlorber.autocommit.watcher.Watcher
+import net.mlorber.autocommit.thread.WatchThread
 
 class WatchCommand : CliktCommand("watch") {
 
     private val logger = KotlinLogging.logger {}
 
-    private lateinit var watchers: List<Watcher>
+    private lateinit var watchers: List<WatchThread>
 
     @Volatile var running: Boolean = true
 
@@ -21,7 +21,7 @@ class WatchCommand : CliktCommand("watch") {
                     stopThreads()
                     running = false
                 })
-        watchers = Configuration.repos.map { Watcher(it) }
+        watchers = Configuration.repos.map { WatchThread(it) }
         while (running) {
             try {
                 Thread.sleep(200)
