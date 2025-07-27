@@ -1,6 +1,12 @@
 # Env
 
-sdk use java 21.0.3-graal
+## install
+
+* sdkman
+* direnv
+* devbox
+
+devbox inits sdkman (sdkman boostrap is NOT needed in shell init)
 
 # Build
 
