@@ -1,0 +1,17 @@
+[
+  {
+    "name": "net.mlorber.autocommit.NotifCallback",
+    "methods": [
+      {
+        "name": "callback",
+        "parameterTypes": [
+          "com.sun.jna.Pointer",
+          "com.sun.jna.Pointer",
+          "com.sun.jna.Pointer",
+          "com.sun.jna.Pointer",
+          "com.sun.jna.Pointer"
+        ]
+      }
+    ]
+  }
+]

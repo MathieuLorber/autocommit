@@ -28,20 +28,17 @@ graalvmNative {
             imageName.set("autocommit")
             mainClass.set("net.mlorber.autocommit.MainKt")
 
-            // IMPORTANT : JNA doit s'initialiser au runtime (sinon thread Cleaner figé)
+            // JNA au runtime (évite le thread Cleaner figé dans l’image)
             buildArgs.add("--initialize-at-run-time=com.sun.jna,com.sun.jna.*")
 
-            // Charger *explicitement* le proxy-config depuis les ressources
+            // Proxy JNA (déjà en place chez vous) :
             buildArgs.add("-H:DynamicProxyConfigurationResources=META-INF/native-image/proxy-config.json")
 
-            // JNA : ne pas chercher une lib système externe
-            runtimeArgs.add("-Djna.nosys=true")
+            // ➜ Ajoutez ceci pour la réflexion sur votre callback :
+            buildArgs.add("-H:ReflectionConfigurationResources=META-INF/native-image/reflect-config.json")
 
-            // (optionnel) debug:
-            // buildArgs.add("--verbose")
-            // buildArgs.add("-H:+ReportExceptionStackTraces")
-            // (optionnel) si jamais jnidispatch pose souci chez vous :
-            // buildArgs.add("-H:IncludeResources=.*jnidispatch.*")
+            runtimeArgs.add("-Djna.nosys=true")
+        }
         }
     }
 }
