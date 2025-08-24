@@ -5,24 +5,37 @@ import com.sun.jna.Library
 import com.sun.jna.Native
 import com.sun.jna.Pointer
 
-// ---- CoreFoundation bindings (minimal) ----
-interface CoreFoundation : Library {
-    fun CFNotificationCenterGetDistributedCenter(): Pointer
-    fun CFNotificationCenterAddObserver(
-        center: Pointer,
-        observer: Pointer?,
-        callBack: CFNotificationCallback,
-        name: Pointer?,     // CFStringRef
-        obj: Pointer?,      // CFStringRef (filtre)
-        suspensionBehavior: Int
+object CF : Library {
+    init { Native.register("CoreFoundation") } // charge la lib et mappe directement
+
+    @JvmStatic external fun CFNotificationCenterGetDistributedCenter(): Pointer
+    @JvmStatic external fun CFNotificationCenterAddObserver(
+        center: Pointer, observer: Pointer?, callBack: CFNotificationCallback,
+        name: Pointer?, obj: Pointer?, suspensionBehavior: Int
     )
-    fun CFStringCreateWithCString(alloc: Pointer?, cStr: String, encoding: Int): Pointer
-    fun CFRunLoopGetCurrent(): Pointer
-    fun CFRunLoopRunInMode(mode: Pointer, seconds: Double, returnAfterSourceHandled: Boolean): Int
-    fun CFRelease(ref: Pointer)
+    @JvmStatic external fun CFStringCreateWithCString(alloc: Pointer?, cStr: String, encoding: Int): Pointer
+    @JvmStatic external fun CFRunLoopRunInMode(mode: Pointer, seconds: Double, returnAfterSourceHandled: Boolean): Int
+    @JvmStatic external fun CFRelease(ref: Pointer)
 }
 
-fun cf(): CoreFoundation = Native.load("CoreFoundation", CoreFoundation::class.java)
+//// ---- CoreFoundation bindings (minimal) ----
+//interface CoreFoundation : Library {
+//    fun CFNotificationCenterGetDistributedCenter(): Pointer
+//    fun CFNotificationCenterAddObserver(
+//        center: Pointer,
+//        observer: Pointer?,
+//        callBack: CFNotificationCallback,
+//        name: Pointer?,     // CFStringRef
+//        obj: Pointer?,      // CFStringRef (filtre)
+//        suspensionBehavior: Int
+//    )
+//    fun CFStringCreateWithCString(alloc: Pointer?, cStr: String, encoding: Int): Pointer
+//    fun CFRunLoopGetCurrent(): Pointer
+//    fun CFRunLoopRunInMode(mode: Pointer, seconds: Double, returnAfterSourceHandled: Boolean): Int
+//    fun CFRelease(ref: Pointer)
+//}
+
+//fun cf(): CoreFoundation = Native.load("CoreFoundation", CoreFoundation::class.java)
 
 // Callback signature
 interface CFNotificationCallback : Callback {
@@ -30,7 +43,7 @@ interface CFNotificationCallback : Callback {
 }
 
 private const val kCFStringEncodingUTF8 = 0x08000100
-private fun cfString(s: String): Pointer = cf().CFStringCreateWithCString(null, s, kCFStringEncodingUTF8)
+private fun cfString(s: String): Pointer = CF.CFStringCreateWithCString(null, s, kCFStringEncodingUTF8)
 
 // CFRunLoop constants
 private fun cfStr(s: String) = cfString(s)
@@ -55,7 +68,6 @@ class NotifCallback(
 
 fun main() {
     // IMPORTANT: lancez avec -XstartOnFirstThread (voir plus bas)
-    val CF = cf()
     val center = CF.CFNotificationCenterGetDistributedCenter()
 
     val lockName   = cfString("com.apple.screenIsLocked")
