@@ -26,19 +26,15 @@ graalvmNative {
             imageName.set("autocommit")
             mainClass.set("net.mlorber.autocommit.MainKt")
 
-            // marche comment exactement ?
-            resources.autodetect()
-
-            // ❌ NE PAS mettre -H:+AddFirstThreadInitializer (option absente)
-            // JNA : souvent inutile d'inclure manuellement jnidispatch, mais possible :
-            buildArgs.add("-H:IncludeResources=.*jnidispatch.*")
-            // (optionnel) verbosité / rapport
-            // buildArgs.add("--verbose")
-
-            // Runtime
+            // JNA: initialiser à build-time = démarrage plus simple
+            buildArgs.addAll(listOf(
+                "--initialize-at-build-time=com.sun.jna,com.sun.jna.*"
+            ))
+            // JNA: éviter la recherche système à l’exécution
             runtimeArgs.add("-Djna.nosys=true")
-            // Si app headless:
-            // runtimeArgs.add("-Djava.awt.headless=true")
+            // (optionnel) diagnostic
+            // buildArgs.add("--verbose")
+            // buildArgs.add("-H:+ReportExceptionStackTraces")
         }
     }
 }
