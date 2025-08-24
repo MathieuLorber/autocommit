@@ -1,0 +1,4 @@
+[
+  { "interfaces": ["net.mlorber.autocommit.CoreFoundation"] },
+  { "interfaces": ["net.mlorber.autocommit.CoreFoundation", "com.sun.jna.Library"] }
+]
