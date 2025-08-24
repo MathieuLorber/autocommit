@@ -1,11 +1,17 @@
 package net.mlorber.autocommit
 
 import com.sun.jna.Callback
+import com.sun.jna.CallbackThreadInitializer
 import com.sun.jna.Library
 import com.sun.jna.Native
 import com.sun.jna.NativeLibrary
 import com.sun.jna.Pointer
 import java.time.ZonedDateTime
+
+object Keep {
+    // évite que le callback soit GCé
+    @JvmStatic lateinit var cb: CFNotificationCallback
+}
 
 interface CoreFoundation : Library {
     fun CFNotificationCenterGetDistributedCenter(): Pointer
@@ -37,6 +43,7 @@ private const val kCFStringEncodingUTF8 = 0x08000100
 private const val CFNotificationSuspensionBehaviorDeliverImmediately = 4
 
 fun main() {
+    Native.setProtected(true) // needed ?
     val center = CF.LIB.CFNotificationCenterGetDistributedCenter()
     require(center != Pointer.NULL) { "Distributed Notification Center not available" }
 
@@ -44,6 +51,8 @@ fun main() {
     val unlockName = CF.LIB.CFStringCreateWithCString(null, "com.apple.screenIsUnlocked", kCFStringEncodingUTF8)
 
     val cb = NotifCallback(lockName, unlockName) // <- classe Java
+    Native.setCallbackThreadInitializer(cb, CallbackThreadInitializer(true, false, "CFNotif"))
+    Keep.cb = cb
 
     CF.LIB.CFNotificationCenterAddObserver(center, null, cb, lockName,   null, CFNotificationSuspensionBehaviorDeliverImmediately)
     CF.LIB.CFNotificationCenterAddObserver(center, null, cb, unlockName, null, CFNotificationSuspensionBehaviorDeliverImmediately)
