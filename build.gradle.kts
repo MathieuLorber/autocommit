@@ -39,6 +39,5 @@ graalvmNative {
 
             runtimeArgs.add("-Djna.nosys=true")
         }
-        }
     }
 }
