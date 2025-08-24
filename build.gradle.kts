@@ -16,6 +16,8 @@ dependencies {
     implementation("com.github.ajalt.clikt:clikt:4.4.0")
     implementation("org.yaml:snakeyaml:2.2")
     implementation("net.java.dev.jna:jna:5.14.0")
+    // pv remove ?
+    compileOnly("org.graalvm.nativeimage:svm:21.0.0.2")
 }
 
 repositories { mavenCentral() }
@@ -25,18 +27,15 @@ graalvmNative {
         named("main") {
             imageName.set("autocommit")
             mainClass.set("net.mlorber.autocommit.MainKt")
-            // ❌ à retirer si vous l’aviez :
-            // buildArgs.add("--initialize-at-build-time=com.sun.jna,com.sun.jna.*")
-
-            // ✅ corrige l’erreur: JNA s'initialise au runtime (pas de thread dans l'image)
+            // JNA doit s'initialiser au RUN TIME (évite le thread Cleaner figé)
             buildArgs.add("--initialize-at-run-time=com.sun.jna,com.sun.jna.*")
-            // moins : com.sun.jna.internal.Cleaner,com.sun.jna.Native,com.sun.jna.NativeLibrary
+            // com.sun.jna.internal.Cleaner,com.sun.jna.Native,com.sun.jna.NativeLibrary
+
             // Recos JNA
             runtimeArgs.add("-Djna.nosys=true")
-
-            // (optionnel) debug si besoin
+            // debug optionnels:
             // buildArgs.add("--verbose")
-            // buildArgs.add("--trace-object-instantiation=com.sun.jna.internal.Cleaner$CleanerThread")
+            // buildArgs.add("-H:+ReportExceptionStackTraces")
         }
     }
 }
