@@ -1,0 +1,29 @@
+# Exemple de configuration pour autocommit avec pull périodique
+
+# Préfixe par défaut pour les messages de commit (optionnel)
+commitMessagePrefix: "[AUTO]"
+
+# Intervalle de pull en minutes (par défaut: 5)
+# Les pulls seront effectués automatiquement à cet intervalle
+pullIntervalMinutes: 10
+
+# Vérifier les changements distants avant de faire un pull (par défaut: false)
+# Si true, utilise git ls-remote pour vérifier s'il y a des changements
+# Cela évite des pulls inutiles et réduit la charge réseau
+checkRemoteFirst: true
+
+# Liste des repositories à surveiller
+repositories:
+  - name: my-project
+    path: /home/user/projects/my-project
+    branch: main
+    # Préfixe spécifique pour ce repo (optionnel, surcharge le préfixe global)
+    commitMessagePrefix: "[PROJECT]"
+  
+  - name: documentation
+    path: /home/user/projects/documentation
+    branch: main
+  
+  - name: config-files
+    path: /home/user/dotfiles
+    branch: master

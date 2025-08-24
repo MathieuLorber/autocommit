@@ -1,6 +1,7 @@
 package net.mlorber.autocommit.config
 
 import java.nio.file.Paths
+import java.time.Duration
 import kotlin.io.path.exists
 import kotlin.io.path.inputStream
 import kotlin.system.exitProcess
@@ -10,15 +11,17 @@ import org.yaml.snakeyaml.Yaml
 object Configuration {
 
     private val logger = KotlinLogging.logger {}
-
-    val repos by lazy {
+    
+    private val yaml by lazy {
         val file = Paths.get(System.getProperty("user.home")).resolve("autocommit-config.yaml")
         if (!file.exists()) {
             logger.error { "Missing config file : $file" }
             exitProcess(1)
         }
-        val yaml = Yaml().load<Map<String, Any>>(file.inputStream())
+        Yaml().load<Map<String, Any>>(file.inputStream())
+    }
 
+    val repos by lazy {
         val commonPrefix  = yaml.get("commitMessagePrefix") as String?
         // TODO a cleaner check of conf ?
         @Suppress("UNCHECKED_CAST")
@@ -30,5 +33,14 @@ object Configuration {
                 it.getValue("branch"),
                 it.get("commitMessagePrefix") ?: commonPrefix ?: "")
         }
+    }
+    
+    val pullInterval: Duration by lazy {
+        val minutes = (yaml.get("pullIntervalMinutes") as? Number)?.toLong() ?: 5L
+        Duration.ofMinutes(minutes)
+    }
+    
+    val checkRemoteFirst: Boolean by lazy {
+        yaml.get("checkRemoteFirst") as? Boolean ?: false
     }
 }
