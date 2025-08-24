@@ -25,16 +25,18 @@ graalvmNative {
         named("main") {
             imageName.set("autocommit")
             mainClass.set("net.mlorber.autocommit.MainKt")
+            // ❌ à retirer si vous l’aviez :
+            // buildArgs.add("--initialize-at-build-time=com.sun.jna,com.sun.jna.*")
 
-            // JNA: initialiser à build-time = démarrage plus simple
-            buildArgs.addAll(listOf(
-                "--initialize-at-build-time=com.sun.jna,com.sun.jna.*"
-            ))
-            // JNA: éviter la recherche système à l’exécution
+            // ✅ corrige l’erreur: JNA s'initialise au runtime (pas de thread dans l'image)
+            buildArgs.add("--initialize-at-run-time=com.sun.jna,com.sun.jna.*")
+
+            // Recos JNA
             runtimeArgs.add("-Djna.nosys=true")
-            // (optionnel) diagnostic
+
+            // (optionnel) debug si besoin
             // buildArgs.add("--verbose")
-            // buildArgs.add("-H:+ReportExceptionStackTraces")
+            // buildArgs.add("--trace-object-instantiation=com.sun.jna.internal.Cleaner$CleanerThread")
         }
     }
 }

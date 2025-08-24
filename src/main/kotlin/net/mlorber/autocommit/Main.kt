@@ -5,69 +5,61 @@ import com.sun.jna.Native
 import com.sun.jna.NativeLibrary
 import com.sun.jna.Pointer
 import java.time.ZonedDateTime
-
-/** ---- Direct mapping CoreFoundation (pas de Proxy/reflection) ---- */
 object CF {
     init {
-        // Lie directement les symboles du framework CoreFoundation
-        Native.register("CoreFoundation")
+        // ✅ passez explicitement la classe au lieu de Native.register("CoreFoundation")
+        com.sun.jna.Native.register(CF::class.java, "CoreFoundation")
     }
 
-    // extern "C" CFNotificationCenterRef CFNotificationCenterGetDistributedCenter(void);
-    @JvmStatic external fun CFNotificationCenterGetDistributedCenter(): Pointer
-
-    // extern "C" void CFNotificationCenterAddObserver(CFNotificationCenterRef center, const void *observer,
-    //     CFNotificationCallback callBack, CFStringRef name, const void *object, CFNotificationSuspensionBehavior behavior);
+    // Méthodes direct mapping (inchangées)
+    @JvmStatic external fun CFNotificationCenterGetDistributedCenter(): com.sun.jna.Pointer
     @JvmStatic external fun CFNotificationCenterAddObserver(
-        center: Pointer,
-        observer: Pointer?,                 // opaque (renvoyé au callback)
-        callBack: CFNotificationCallback,   // JNA Callback (une seule méthode `callback`)
-        name: Pointer?,                     // CFStringRef (nullable = toutes)
-        obj: Pointer?,                      // filtre (nullable)
+        center: com.sun.jna.Pointer,
+        observer: com.sun.jna.Pointer?,
+        callBack: CFNotificationCallback,
+        name: com.sun.jna.Pointer?,
+        obj: com.sun.jna.Pointer?,
         suspensionBehavior: Int
     )
-
-    // extern "C" CFStringRef CFStringCreateWithCString(CFAllocatorRef alloc, const char *cStr, CFStringEncoding encoding);
     @JvmStatic external fun CFStringCreateWithCString(
-        alloc: Pointer?, cStr: String, encoding: Int
-    ): Pointer
-
-    // extern "C" SInt32 CFRunLoopRunInMode(CFStringRef mode, CFTimeInterval seconds, Boolean returnAfterSourceHandled);
+        alloc: com.sun.jna.Pointer?, cStr: String, encoding: Int
+    ): com.sun.jna.Pointer
     @JvmStatic external fun CFRunLoopRunInMode(
-        mode: Pointer?, seconds: Double, returnAfterSourceHandled: Boolean
+        mode: com.sun.jna.Pointer?, seconds: Double, returnAfterSourceHandled: Boolean
     ): Int
+    @JvmStatic external fun CFRelease(ref: com.sun.jna.Pointer)
 
-    // extern "C" void CFRelease(CFTypeRef cf);
-    @JvmStatic external fun CFRelease(ref: Pointer)
-
-    /** Récupère l’adresse du global `kCFRunLoopDefaultMode` depuis la lib */
-    val kCFRunLoopDefaultMode: Pointer by lazy {
-        NativeLibrary.getInstance("CoreFoundation").getGlobalVariableAddress("kCFRunLoopDefaultMode")
+    // ⚠️ Déréférencer le global pour obtenir le CFStringRef effectif
+    val kCFRunLoopDefaultMode: com.sun.jna.Pointer by lazy {
+        val addr = com.sun.jna.NativeLibrary
+            .getInstance("CoreFoundation")
+            .getGlobalVariableAddress("kCFRunLoopDefaultMode")
+        addr.getPointer(0) // ✅ CFStringRef
     }
 }
-
-/** Signature exacte demandée par JNA : une seule méthode publique nommée `callback`. */
-interface CFNotificationCallback : Callback {
-    fun callback(center: Pointer?, observer: Pointer?, name: Pointer?, obj: Pointer?, userInfo: Pointer?)
+interface CFNotificationCallback : com.sun.jna.Callback {
+    fun callback(center: com.sun.jna.Pointer?, observer: com.sun.jna.Pointer?,
+                 name: com.sun.jna.Pointer?, obj: com.sun.jna.Pointer?, userInfo: com.sun.jna.Pointer?)
 }
 
-private const val kCFStringEncodingUTF8 = 0x08000100
-private const val CFNotificationSuspensionBehaviorDeliverImmediately = 4
-
-/** Implémentation nommée (évite les classes anonymes) */
 class NotifCallback(
-    private val lockName: Pointer,
-    private val unlockName: Pointer
+    private val lockName: com.sun.jna.Pointer,
+    private val unlockName: com.sun.jna.Pointer
 ) : CFNotificationCallback {
-    override fun callback(center: Pointer?, observer: Pointer?, name: Pointer?, obj: Pointer?, userInfo: Pointer?) {
+    override fun callback(center: com.sun.jna.Pointer?, observer: com.sun.jna.Pointer?,
+                          name: com.sun.jna.Pointer?, obj: com.sun.jna.Pointer?, userInfo: com.sun.jna.Pointer?) {
         val label = when (name) {
             lockName   -> "LOCKED"
             unlockName -> "UNLOCKED"
             else       -> "UNKNOWN"
         }
-        println("[macOS] Screen $label @ ${ZonedDateTime.now()}")
+        println("[macOS] Screen $label @ ${java.time.ZonedDateTime.now()}")
     }
 }
+
+private const val kCFStringEncodingUTF8 = 0x08000100
+private const val CFNotificationSuspensionBehaviorDeliverImmediately = 4
+
 
 fun main() {
     // Sur **JVM HotSpot**, lancez avec -XstartOnFirstThread
