@@ -26,6 +26,9 @@ graalvmNative {
             imageName.set("autocommit")
             mainClass.set("net.mlorber.autocommit.MainKt")
 
+            // marche comment exactement ?
+            resources.autodetect()
+
             // ❌ NE PAS mettre -H:+AddFirstThreadInitializer (option absente)
             // JNA : souvent inutile d'inclure manuellement jnidispatch, mais possible :
             buildArgs.add("-H:IncludeResources=.*jnidispatch.*")
