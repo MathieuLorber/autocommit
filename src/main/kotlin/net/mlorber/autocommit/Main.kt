@@ -23,6 +23,9 @@ interface CoreFoundation : Library {
         obj: Pointer?,
         suspensionBehavior: Int
     )
+    // ✅ Ajoutez ceci :
+    fun CFRunLoopRun()
+
     fun CFStringCreateWithCString(alloc: Pointer?, cStr: String, encoding: Int): Pointer
     fun CFRunLoopRunInMode(
         mode: Pointer?, seconds: Double, returnAfterSourceHandled: Byte
@@ -65,7 +68,8 @@ fun main() {
     CF.LIB.CFNotificationCenterAddObserver(center, null, cb, unlockName, null, CFNotificationSuspensionBehaviorDeliverImmediately)
 
     println("Listening… (Ctrl+C to quit)")
-    while (true) {
-        CF.LIB.CFRunLoopRunInMode(CF.kCFRunLoopDefaultMode, 5.0, 1.toByte()) // 1 = true
-    }
+//    while (true) {
+//        CF.LIB.CFRunLoopRunInMode(CF.kCFRunLoopDefaultMode, 5.0, 1.toByte()) // 1 = true
+//    }
+    CF.LIB.CFRunLoopRun()
 }
