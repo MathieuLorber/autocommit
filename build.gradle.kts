@@ -27,7 +27,7 @@ graalvmNative {
             mainClass.set("net.mlorber.autocommit.MainKt")
 
             // Équivalent de -XstartOnFirstThread
-            buildArgs.add("-H:+AddFirstThreadInitializer")
+            // buildArgs.add("-H:+AddFirstThreadInitializer")
 
             // JNA friendly
             buildArgs.add("--initialize-at-build-time=com.sun.jna,com.sun.jna.*")
