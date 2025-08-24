@@ -24,7 +24,9 @@ interface CoreFoundation : Library {
         suspensionBehavior: Int
     )
     fun CFStringCreateWithCString(alloc: Pointer?, cStr: String, encoding: Int): Pointer
-    fun CFRunLoopRunInMode(mode: Pointer?, seconds: Double, returnAfterSourceHandled: Boolean): Int
+    fun CFRunLoopRunInMode(
+        mode: Pointer?, seconds: Double, returnAfterSourceHandled: Byte
+    ): Int
     fun CFRelease(ref: Pointer)
 }
 
@@ -43,22 +45,27 @@ private const val kCFStringEncodingUTF8 = 0x08000100
 private const val CFNotificationSuspensionBehaviorDeliverImmediately = 4
 
 fun main() {
-    Native.setProtected(true) // needed ?
+    Native.setProtected(true) // optionnel mais utile pour diagnostiquer
+
     val center = CF.LIB.CFNotificationCenterGetDistributedCenter()
-    require(center != Pointer.NULL) { "Distributed Notification Center not available" }
+    require(center != Pointer.NULL)
 
     val lockName   = CF.LIB.CFStringCreateWithCString(null, "com.apple.screenIsLocked",   kCFStringEncodingUTF8)
     val unlockName = CF.LIB.CFStringCreateWithCString(null, "com.apple.screenIsUnlocked", kCFStringEncodingUTF8)
 
-    val cb = NotifCallback(lockName, unlockName) // <- classe Java
+    val cb = NotifCallback(lockName, unlockName)
+
+    // 🔑 Attacher le thread natif qui exécutera le callback
     Native.setCallbackThreadInitializer(cb, CallbackThreadInitializer(true, false, "CFNotif"))
+
+    // 🔑 Référence forte
     Keep.cb = cb
 
     CF.LIB.CFNotificationCenterAddObserver(center, null, cb, lockName,   null, CFNotificationSuspensionBehaviorDeliverImmediately)
     CF.LIB.CFNotificationCenterAddObserver(center, null, cb, unlockName, null, CFNotificationSuspensionBehaviorDeliverImmediately)
 
-    println("Listening for macOS screen lock/unlock… (Ctrl+C to quit)")
+    println("Listening… (Ctrl+C to quit)")
     while (true) {
-        CF.LIB.CFRunLoopRunInMode(CF.kCFRunLoopDefaultMode, 5.0, true)
+        CF.LIB.CFRunLoopRunInMode(CF.kCFRunLoopDefaultMode, 5.0, 1.toByte()) // 1 = true
     }
 }
