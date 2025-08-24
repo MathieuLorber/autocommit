@@ -25,6 +25,19 @@ graalvmNative {
         named("main") {
             imageName.set("autocommit")
             mainClass.set("net.mlorber.autocommit.MainKt")
+
+            // Équivalent de -XstartOnFirstThread
+            buildArgs.add("-H:+AddFirstThreadInitializer")
+
+            // JNA friendly
+            buildArgs.add("--initialize-at-build-time=com.sun.jna,com.sun.jna.*")
+            buildArgs.add("-H:IncludeResources=.*jnidispatch.*")
+
+            // props passées à l’exécutable (ou mettez-les en runtimeArgs)
+            runtimeArgs.add("-Djna.nosys=true")
+
+            // (optionnel) si vous n’avez aucune UI AWT/Swing :
+             runtimeArgs.add("-Djava.awt.headless=true")
         }
     }
 }
