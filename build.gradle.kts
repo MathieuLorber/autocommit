@@ -30,7 +30,7 @@ graalvmNative {
 
             // ✅ corrige l’erreur: JNA s'initialise au runtime (pas de thread dans l'image)
             buildArgs.add("--initialize-at-run-time=com.sun.jna,com.sun.jna.*")
-
+            // moins : com.sun.jna.internal.Cleaner,com.sun.jna.Native,com.sun.jna.NativeLibrary
             // Recos JNA
             runtimeArgs.add("-Djna.nosys=true")
 
