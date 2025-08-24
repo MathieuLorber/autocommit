@@ -26,7 +26,7 @@ fun cf(): CoreFoundation = Native.load("CoreFoundation", CoreFoundation::class.j
 
 // Callback signature
 interface CFNotificationCallback : Callback {
-    fun invoke(center: Pointer?, observer: Pointer?, name: Pointer?, obj: Pointer?, userInfo: Pointer?)
+    fun callback(center: Pointer?, observer: Pointer?, name: Pointer?, obj: Pointer?, userInfo: Pointer?)
 }
 
 private const val kCFStringEncodingUTF8 = 0x08000100
@@ -38,6 +38,21 @@ private val kCFRunLoopDefaultMode: Pointer by lazy { cfStr("kCFRunLoopDefaultMod
 
 private const val CFNotificationSuspensionBehaviorDeliverImmediately = 4
 
+class NotifCallback(
+    private val lockName: com.sun.jna.Pointer,
+    private val unlockName: com.sun.jna.Pointer
+) : CFNotificationCallback {
+    override fun callback(center: com.sun.jna.Pointer?, observer: com.sun.jna.Pointer?,
+                          name: com.sun.jna.Pointer?, obj: com.sun.jna.Pointer?, userInfo: com.sun.jna.Pointer?) {
+        val label = when (name) {
+            lockName   -> "LOCKED"
+            unlockName -> "UNLOCKED"
+            else       -> "UNKNOWN"
+        }
+        println("[macOS] Screen $label @ ${java.time.ZonedDateTime.now()}")
+    }
+}
+
 fun main() {
     // IMPORTANT: lancez avec -XstartOnFirstThread (voir plus bas)
     val CF = cf()
@@ -46,16 +61,7 @@ fun main() {
     val lockName   = cfString("com.apple.screenIsLocked")
     val unlockName = cfString("com.apple.screenIsUnlocked")
 
-    val cb = object : CFNotificationCallback {
-        override fun invoke(center: Pointer?, observer: Pointer?, name: Pointer?, obj: Pointer?, userInfo: Pointer?) {
-            val label = when (name) {
-                lockName   -> "LOCKED"
-                unlockName -> "UNLOCKED"
-                else       -> "UNKNOWN"
-            }
-            println("[macOS] Screen $label @ ${java.time.ZonedDateTime.now()}")
-        }
-    }
+    val cb = NotifCallback(lockName, unlockName)
 
     CF.CFNotificationCenterAddObserver(center, null, cb, lockName,   null, CFNotificationSuspensionBehaviorDeliverImmediately)
     CF.CFNotificationCenterAddObserver(center, null, cb, unlockName, null, CFNotificationSuspensionBehaviorDeliverImmediately)
