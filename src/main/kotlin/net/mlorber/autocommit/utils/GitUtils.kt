@@ -10,6 +10,14 @@ object GitUtils {
 
     fun saveAndUpdate(repositoryConfig: RepositoryConfig) {
         val currentBranch = currentBranch(repositoryConfig)
+        if (currentBranch == null) {
+            // Detached HEAD: a rebase, a merge or a bisect is in progress. Touching the index now
+            // would interfere with it, so wait for the repository to be back on a branch.
+            logger.warn {
+                "${repositoryConfig.coloredName()} repository has a detached HEAD (rebase or merge in progress?). Nothing is committed until it is back on '${repositoryConfig.branch}' branch."
+            }
+            return
+        }
         if (currentBranch == repositoryConfig.branch) {
             save(repositoryConfig)
             pull(repositoryConfig)
@@ -28,8 +36,9 @@ object GitUtils {
         }
     }
 
-    fun currentBranch(repositoryConfig: RepositoryConfig) =
-        ShellRunner.run(repositoryConfig.path, "git branch --show-current").output.first()
+    /** The checked out branch, or null when HEAD is detached. */
+    fun currentBranch(repositoryConfig: RepositoryConfig): String? =
+        ShellRunner.run(repositoryConfig.path, "git branch --show-current").output.firstOrNull()
 
     fun diffFiles(repositoryConfig: RepositoryConfig): List<String> {
         ShellRunner.run(repositoryConfig.path, "git add --all")
