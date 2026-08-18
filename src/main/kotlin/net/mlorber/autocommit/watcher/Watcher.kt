@@ -40,15 +40,23 @@ class Watcher {
                         } catch (e: InterruptedException) {
                             return@Thread
                         }
-                    key.pollEvents().forEach { event ->
-                        if (event.context().toString() == gitRepository) {
-                            return@forEach
+                    try {
+                        key.pollEvents().forEach { event ->
+                            if (event.context().toString() == gitRepository) {
+                                return@forEach
+                            }
+                            val kind = event.kind()
+                            if (kind === OVERFLOW) {
+                                return@forEach
+                            }
+                            GitUtils.saveAndUpdate(repositoryConfig)
                         }
-                        val kind = event.kind()
-                        if (kind === OVERFLOW) {
-                            return@forEach
+                    } catch (e: Throwable) {
+                        // Never let a failure escape: it would kill this thread and the repository
+                        // would stay unwatched, without the process ever noticing.
+                        logger.error(e) {
+                            "Error while updating ${repositoryConfig.coloredName()}, keep watching ${repositoryConfig.path}"
                         }
-                        GitUtils.saveAndUpdate(repositoryConfig)
                     }
                     // Reset the key -- this step is critical if you want to
                     // receive further watch events.  If the key is no longer valid,
