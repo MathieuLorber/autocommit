@@ -18,8 +18,10 @@ repositories:
     # commitMessagePrefix: '[...]'  # optional, overrides the common prefix
 ```
 
-One thread watches each repository, recursively, `.git` excluded. Every filesystem event
-triggers a cycle whose behaviour depends on the state of the repository:
+One thread watches each repository, recursively, `.git` excluded. Each thread runs a first
+cycle at startup, so changes made while the process was down are picked up without waiting for
+a filesystem event; afterwards every filesystem event triggers a cycle. The behaviour of a
+cycle depends on the state of the repository:
 
 | Repository state                          | Behaviour                                                                  |
 | ----------------------------------------- | -------------------------------------------------------------------------- |

@@ -33,6 +33,9 @@ class Watcher {
                 }
                 val watcher = FileSystems.getDefault().newWatchService()
                 register(repositoryConfig.path, watcher)
+                // Check the repository once at startup: changes made while the process was down
+                // would otherwise wait for the next filesystem event, possibly forever.
+                update(repositoryConfig)
                 while (running) {
                     val key =
                         try {
@@ -40,23 +43,15 @@ class Watcher {
                         } catch (e: InterruptedException) {
                             return@Thread
                         }
-                    try {
-                        key.pollEvents().forEach { event ->
-                            if (event.context().toString() == gitRepository) {
-                                return@forEach
-                            }
-                            val kind = event.kind()
-                            if (kind === OVERFLOW) {
-                                return@forEach
-                            }
-                            GitUtils.saveAndUpdate(repositoryConfig)
+                    key.pollEvents().forEach { event ->
+                        if (event.context().toString() == gitRepository) {
+                            return@forEach
                         }
-                    } catch (e: Throwable) {
-                        // Never let a failure escape: it would kill this thread and the repository
-                        // would stay unwatched, without the process ever noticing.
-                        logger.error(e) {
-                            "Error while updating ${repositoryConfig.coloredName()}, keep watching ${repositoryConfig.path}"
+                        val kind = event.kind()
+                        if (kind === OVERFLOW) {
+                            return@forEach
                         }
+                        update(repositoryConfig)
                     }
                     // Reset the key -- this step is critical if you want to
                     // receive further watch events.  If the key is no longer valid,
@@ -68,6 +63,20 @@ class Watcher {
                 }
             })
         thread.start()
+    }
+
+    /**
+     * Never let a failure escape: it would kill this thread and the repository would stay
+     * unwatched, without the process ever noticing.
+     */
+    private fun update(repositoryConfig: RepositoryConfig) {
+        try {
+            GitUtils.saveAndUpdate(repositoryConfig)
+        } catch (e: Throwable) {
+            logger.error(e) {
+                "Error while updating ${repositoryConfig.coloredName()}, keep watching ${repositoryConfig.path}"
+            }
+        }
     }
 
     fun register(dir: Path, watcher: java.nio.file.WatchService) {
