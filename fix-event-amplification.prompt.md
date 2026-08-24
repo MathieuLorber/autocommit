@@ -7,8 +7,8 @@ Repo : `/Users/mlo/git/autocommit` (Kotlin + GraalVM native-image), branche `wat
 autocommit part en roue libre sur `~/git-pap/pap`, un vault Obsidian. Obsidian réécrit en
 continu `.obsidian/workspace.json`, qui est **ignoré par git**, et chaque écriture déclenche un
 cycle complet : `git branch --show-current` → `add --all` → `diff --name-status --cached` →
-`pull --rebase` → `push`. Relevé dans `~/work/autocommit/autocommit.log` : **3837 cycles pour
-1568 commits**, avec des pics à 44 cycles/minute pour des cycles qui durent ~3 s (deux
+`pull --rebase` → `push`. Relevé dans `~/work/autocommit/autocommit.log` : **4074 cycles pour
+1691 commits**, avec des pics à 44 cycles/minute pour des cycles qui durent ~3 s (deux
 opérations réseau). Le watcher ne rattrape jamais sa file d'événements : il sature un cœur à
 forker `sh`/`git` et à parler au remote pour rien.
 
@@ -36,7 +36,7 @@ if (currentBranch == repositoryConfig.branch) {
 }
 ```
 
-D'où l'écart 3837 / 1568 : ~2300 allers-retours réseau qui n'avaient rien à transporter.
+D'où l'écart 4074 / 1691 : ~2400 allers-retours réseau qui n'avaient rien à transporter.
 
 **3. Le watcher ignore `.gitignore`** — un événement sur un fichier ignoré déclenche un cycle
 comme les autres. Dans `~/git-pap/pap`, `git status --porcelain --ignored` remonte
@@ -197,6 +197,24 @@ tail -f ~/work/autocommit/autocommit.log
 Le label launchd est `autocommit`, pas le nom du fichier plist. `KeepAlive` est actif : un
 `kill` ne suffit pas à l'arrêter, il faut `bootout`. `autocommit.log` fait 11 Mo et n'est jamais
 tourné : `: > ~/work/autocommit/autocommit.log` avant de relancer, pour lire une trace propre.
+
+## Deux constats du même diagnostic
+
+**Les watchers meurent en silence.** `autocommit-error.log` contient 5
+`Exception in thread "Thread-1"` — Thread-1 est le watcher de `pap`, le premier dépôt de la
+config. La mort d'un thread ne fait pas sortir le process, donc `KeepAlive` ne relance rien :
+`pap` est resté non surveillé jusqu'au redémarrage manuel suivant, sans que rien ne le signale.
+Le catch-all de `0ae5dad` referme le cas « erreur pendant un cycle », mais pas le `break` sur
+`key.reset()` invalide, ni une exception pendant `register()`. Une surveillance
+`thread.isAlive` dans la boucle de `WatchCommand`, avec relance ou log d'erreur, est le
+complément naturel de ce lot.
+
+**Deux dépôts n'ont jamais été surveillés.** Sur tout l'historique du log :
+3736 cycles dans `pap`, 196 dans `pap-lite`, 142 dans `obsidian-test`, et **zéro** dans
+`pap-archive` et `pap-lite-archive`. C'est cohérent avec le binaire déployé — pas de cycle au
+démarrage, et des dépôts d'archive ne produisent aucun événement fichier — donc `022774a` le
+corrige déjà. À garder en tête en vérifiant le point 4 : le cycle de démarrage est la seule
+chose qui regarde ces deux dépôts.
 
 ## Pour plus tard, hors périmètre
 
